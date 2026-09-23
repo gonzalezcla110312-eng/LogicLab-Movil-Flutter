@@ -3,9 +3,8 @@
 typedef TokenReader = Future<String?> Function();
 
 class DioClient {
-  // Emulador Android: http://10.0.2.2:3001/api
-  // Dispositivo físico: http://IP_DE_TU_PC:3001/api
-  static const String baseUrl = 'https://m25fvxrw-3001.use2.devtunnels.ms/api';
+  static const String baseUrl =
+      'https://m25fvxrw-3001.use2.devtunnels.ms/api';
 
   final Dio dio;
 

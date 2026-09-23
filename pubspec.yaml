@@ -1,5 +1,5 @@
-name: flutter_application_1
-description: "A new Flutter project."
+name: logiclab
+description: "LogicLab - Sistema de gestión de restaurante"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -36,6 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_secure_storage: ^11.2.0
+  webview_flutter: ^4.14.1
 
 dev_dependencies:
   flutter_test:
