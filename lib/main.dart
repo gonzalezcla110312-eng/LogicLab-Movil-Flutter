@@ -1,3 +1,4 @@
+import 'pedidos_cocina.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -217,6 +218,7 @@ class _PanelState extends State<Panel> {
       if (rol == 'mesero' || rol == 'cocinero') ...['Platos', 'Menús'],
       if (rol == 'mesero') ...['Mesas', 'Reservaciones'],
       if (rol == 'cocinero') 'Cocina',
+      if (rol == 'mesero' || rol == 'administrador') 'Pedidos',
     ];
     return Scaffold(
       backgroundColor: const Color(0xFF170F0E),
@@ -236,6 +238,8 @@ class _PanelState extends State<Panel> {
         ]))),
       body: pagina == 'Menús'
         ? MenuDia(api: widget.api)
+        : (pagina == 'Cocina' || pagina == 'Pedidos')
+        ? PedidosCocina(api: widget.api, rol: pagina == 'Cocina' ? 'cocinero' : rol)
         : VistaApi(api: widget.api, titulo: pagina, ruta: switch (pagina) {
           'Empleados' => '/api/usuarios',
           'Platos' => '/api/platillos',
