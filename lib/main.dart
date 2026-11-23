@@ -268,7 +268,7 @@ class _MenuDiaState extends State<MenuDia> {
         .map((p) => Map<String, dynamic>.from(p)).toList();
       final fecha = DateTime.now().toIso8601String().substring(0, 10);
       try {
-        final menu = await widget.api.pedir('GET', '/api/menu-dia/' + fecha);
+        final menu = await widget.api.pedir('GET', '/api/menu-dia/hoy');
         elegidos.clear();
         final datos = menu['datos'];
         if (datos is Map && datos['items'] is List) {
@@ -303,7 +303,7 @@ class _MenuDiaState extends State<MenuDia> {
   }
   @override
   Widget build(BuildContext context) => Column(children: [
-    ListTile(title: const Text('MENÚ DEL DÍA',
+    ListTile(title: const Text('MENÚ HOY',
       style: TextStyle(color: dorado, fontSize: 22)),
       trailing: IconButton(onPressed: cargar, icon: const Icon(Icons.refresh))),
     if (cargando) const Expanded(child: Center(child: CircularProgressIndicator()))
@@ -324,9 +324,9 @@ class _MenuDiaState extends State<MenuDia> {
     }).toList())),
     Padding(padding: const EdgeInsets.all(16),
       child: Column(children: [
-        Text('Platos seleccionados: ' + elegidos.length.toString()),
+        Text('Total platos en menú: ' + elegidos.length.toString()),
         SizedBox(width: double.infinity, child: FilledButton(
-          onPressed: guardar, child: const Text('GUARDAR MENÚ DEL DÍA'))),
+          onPressed: guardar, child: const Text('↑ Subir Menú del Día'))),
       ])),
   ]);
 }
