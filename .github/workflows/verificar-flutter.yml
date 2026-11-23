@@ -1,0 +1,31 @@
+name: Verificar Flutter Android
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.5'
+          cache: true
+      - name: Dependencias
+        run: flutter pub get
+      - name: Analisis de Dart
+        run: flutter analyze --no-fatal-infos
+      - name: Pruebas
+        run: flutter test
+      - name: Compilar APK Android
+        run: flutter build apk --debug
+      - name: Guardar APK de prueba
+        uses: actions/upload-artifact@v4
+        with:
+          name: mangata-android-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
