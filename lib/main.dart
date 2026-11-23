@@ -215,7 +215,10 @@ class _VistaApiState extends State<VistaApi> {
   late Future<dynamic> datos;
   @override
   void initState() { super.initState(); actualizar(); }
-  void actualizar() => setState(() => datos = widget.api.pedir('GET', widget.ruta));
+  void actualizar() {
+    final solicitud = widget.api.pedir('GET', widget.ruta);
+    setState(() { datos = solicitud; });
+  }
   @override
   Widget build(BuildContext context) => Column(children: [
     ListTile(title: Text(widget.titulo, style: const TextStyle(color: dorado, fontSize: 23)),
