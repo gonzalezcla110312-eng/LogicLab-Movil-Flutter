@@ -240,24 +240,7 @@ class _MenuDiaState extends State<MenuDia> {
       return Card(color: vino, child: CheckboxListTile(
         activeColor: naranja,
         title: Text(p['nombre'].toString()),
-        subtitle: Text((p['descripcion'] ?? '').toString() + '\n\p['precio'].toString(),
-          style: const TextStyle(color: dorado)),
-        value: elegidos.contains(id),
-        onChanged: (v) => setState(() {
-          if (v == true) { if (id > 0 && !elegidos.contains(id)) elegidos.add(id); }
-          else { elegidos.remove(id); }
-        }),
-      ));
-    }).toList())),
-    Padding(padding: const EdgeInsets.all(16),
-      child: Column(children: [
-        Text('Platos seleccionados: ' + elegidos.length.toString()),
-        SizedBox(width: double.infinity, child: FilledButton(
-          onPressed: guardar, child: const Text('GUARDAR MENÚ DEL DÍA'))),
-      ])),
-  ]);
-}
- + p['precio'].toString(),
+        subtitle: Text((p['descripcion'] ?? '').toString() + '\n' + r'\$' + p['precio'].toString(),
           style: const TextStyle(color: dorado)),
         value: elegidos.contains(id),
         onChanged: (v) => setState(() {
