@@ -299,80 +299,236 @@ class MenuDia extends StatefulWidget {
   @override
   State<MenuDia> createState() => _MenuDiaState();
 }
+
 class _MenuDiaState extends State<MenuDia> {
+  final categorias = const {
+    0: 'Todos', 1: 'Carta Corriente', 2: 'Comida Rapida',
+    3: 'Carta Especial', 4: 'Bebidas',
+  };
   List<Map<String, dynamic>> platos = [];
-  final elegidos = <int>[];
+  List<Map<String, dynamic>> seleccion = [];
+  int filtro = 0;
   bool cargando = true;
+  bool publicando = false;
+  bool publicado = false;
   String error = '';
+
+  int entero(dynamic valor) => int.tryParse(valor.toString()) ?? 0;
+
+  Map<String, dynamic> normalizar(Map item) {
+    final p = item['platillo'] is Map ? item['platillo'] as Map : item;
+    return {
+      'id': entero(p['id'] ?? item['platillo_id']),
+      'nombre': (p['nombre'] ?? p['NombrePlato'] ?? '').toString(),
+      'descripcion': (p['descripcion'] ?? p['Descripcion'] ?? '').toString(),
+      'precio': p['precio'] ?? p['Precio'] ?? 0,
+      'categoria_id': entero(p['categoria_id'] ?? p['CategoriaId']),
+      'imagen_url': (p['imagen_url'] ?? '').toString(),
+    };
+  }
+
+  String moneda(dynamic valor) {
+    final cantidad = (double.tryParse(valor.toString()) ?? 0).round().toString();
+    return '\$' + cantidad.replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+  }
+
   @override
-  void initState() { super.initState(); cargar(); }
+  void initState() {
+    super.initState();
+    cargar();
+  }
+
   Future<void> cargar() async {
     setState(() { cargando = true; error = ''; });
     try {
-      final r = await widget.api.pedir('GET', '/api/platillos');
-      platos = (r['datos'] as List).whereType<Map>()
-        .map((p) => Map<String, dynamic>.from(p)).toList();
-      final fecha = DateTime.now().toIso8601String().substring(0, 10);
+      final respuesta = await widget.api.pedir('GET', '/api/platillos');
+      final lista = respuesta is Map ? respuesta['datos'] : null;
+      if (lista is! List) throw Exception('No se recibieron platos');
+      final nuevosPlatos = lista.whereType<Map>().map(normalizar).toList();
+      List<Map<String, dynamic>> nuevosSeleccionados = [];
       try {
-        final menu = await widget.api.pedir('GET', '/api/menu-dia/hoy');
-        elegidos.clear();
-        final datos = menu['datos'];
-        if (datos is Map && datos['items'] is List) {
-          for (final p in datos['items']) {
-            final id = int.tryParse((p['platillo_id'] ?? p['id']).toString());
-            if (id != null) elegidos.add(id);
-          }
+        final respuestaMenu = await widget.api.pedir('GET', '/api/menu-dia/hoy');
+        final datos = respuestaMenu is Map ? respuestaMenu['datos'] : null;
+        final items = datos is Map ? datos['items'] : datos;
+        if (items is List) {
+          nuevosSeleccionados = items.whereType<Map>().map(normalizar).toList();
         }
-      } catch (_) { elegidos.clear(); }
-    } catch (e) { error = e.toString(); }
-    if (mounted) setState(() => cargando = false);
+      } catch (_) {
+        // Un menú aún no creado no impide administrar los platos.
+      }
+      if (!mounted) return;
+      setState(() {
+        platos = nuevosPlatos;
+        seleccion = nuevosSeleccionados;
+        publicado = seleccion.isNotEmpty;
+      });
+    } catch (e) {
+      if (mounted) setState(() { error = e.toString(); });
+    } finally {
+      if (mounted) setState(() { cargando = false; });
+    }
   }
-  Future<void> guardar() async {
-    if (elegidos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Selecciona al menos un plato.')));
+
+  void avisar(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
+  }
+
+  Future<void> limpiar() async {
+    try {
+      await widget.api.pedir('DELETE', '/api/menu-dia/limpiar');
+      if (!mounted) return;
+      setState(() { seleccion.clear(); publicado = false; });
+    } catch (e) {
+      avisar(e.toString());
+    }
+  }
+
+  Future<void> publicar() async {
+    if (seleccion.isEmpty) {
+      avisar('Agrega al menos un plato');
       return;
     }
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (contexto) => AlertDialog(
+        title: const Text('MENÚ DE HOY'),
+        content: Text('Este será el menú de hoy. ¿Está todo correcto?\n'
+          '${seleccion.where((p) => p['categoria_id'] != 4).length} platos · '
+          '${seleccion.where((p) => p['categoria_id'] == 4).length} bebidas'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(contexto, false),
+            child: const Text('No')),
+          FilledButton(onPressed: () => Navigator.pop(contexto, true),
+            child: const Text('¡Sí, subir!')),
+        ],
+      ),
+    );
+    if (confirmar != true || !mounted) return;
+    setState(() { publicando = true; });
     try {
       final fecha = DateTime.now().toIso8601String().substring(0, 10);
-      await widget.api.pedir('PUT', '/api/menu-dia/' + fecha, {
+      await widget.api.pedir('PUT', '/api/menu-dia/$fecha', {
+        'fecha': fecha,
         'publicado': true,
-        'items': [for (var i = 0; i < elegidos.length; i++)
-          {'platillo_id': elegidos[i], 'orden': i + 1}]
+        'items': [
+          for (var n = 0; n < seleccion.length; n++)
+            {'platillo_id': seleccion[n]['id'], 'orden': n + 1},
+        ],
       });
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Menú guardado correctamente')));
+      if (!mounted) return;
+      setState(() { publicado = true; });
+      avisar('Menú del día publicado correctamente');
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())));
+      avisar(e.toString());
+    } finally {
+      if (mounted) setState(() { publicando = false; });
     }
   }
+
+  Widget plato(Map<String, dynamic> p) => Card(
+    color: const Color(0xFF321E1A),
+    child: ListTile(
+      onTap: () => setState(() {
+        seleccion.add(Map<String, dynamic>.from(p));
+        publicado = false;
+      }),
+      title: Text(p['nombre'].toString(),
+        style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text('${p['descripcion']}\n${moneda(p['precio'])}',
+        maxLines: 3, overflow: TextOverflow.ellipsis,
+        style: const TextStyle(color: dorado)),
+      trailing: const Icon(Icons.add_circle_outline, color: naranja),
+    ),
+  );
+
+  Widget grupo(String nombre, int? categoria) {
+    final elementos = seleccion.where((p) =>
+      categoria == 4 ? p['categoria_id'] == 4 : p['categoria_id'] != 4).toList();
+    if (elementos.isEmpty) return const SizedBox.shrink();
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Padding(padding: const EdgeInsets.only(top: 14, bottom: 8),
+        child: Text(nombre, style: const TextStyle(
+          color: dorado, fontSize: 17, fontWeight: FontWeight.bold))),
+      for (final p in elementos)
+        Card(color: vino, child: ListTile(
+          title: Text(p['nombre'].toString()),
+          subtitle: Text(moneda(p['precio']),
+            style: const TextStyle(color: dorado)),
+          trailing: IconButton(
+            icon: const Icon(Icons.close, color: Colors.redAccent),
+            onPressed: () => setState(() {
+              seleccion.removeAt(seleccion.indexOf(p));
+              publicado = false;
+            })),
+        )),
+    ]);
+  }
+
   @override
-  Widget build(BuildContext context) => Column(children: [
-    ListTile(title: const Text('MENÚ HOY',
-      style: TextStyle(color: dorado, fontSize: 22)),
-      trailing: IconButton(onPressed: cargar, icon: const Icon(Icons.refresh))),
-    if (cargando) const Expanded(child: Center(child: CircularProgressIndicator()))
-    else if (error.isNotEmpty) Expanded(child: Center(child: Text(error)))
-    else Expanded(child: ListView(children: platos.map((p) {
-      final id = int.tryParse(p['id'].toString()) ?? -1;
-      return Card(color: vino, child: CheckboxListTile(
-        activeColor: naranja,
-        title: Text(p['nombre'].toString()),
-        subtitle: Text((p['descripcion'] ?? '').toString() + '\n' + r'\$' + p['precio'].toString(),
-          style: const TextStyle(color: dorado)),
-        value: elegidos.contains(id),
-        onChanged: (v) => setState(() {
-          if (v == true) { if (id > 0 && !elegidos.contains(id)) elegidos.add(id); }
-          else { elegidos.remove(id); }
-        }),
-      ));
-    }).toList())),
-    Padding(padding: const EdgeInsets.all(16),
-      child: Column(children: [
-        Text('Total platos en menú: ' + elegidos.length.toString()),
-        SizedBox(width: double.infinity, child: FilledButton(
-          onPressed: guardar, child: const Text('↑ Subir Menú del Día'))),
-      ])),
-  ]);
+  Widget build(BuildContext context) {
+    final visibles = platos.where((p) =>
+      filtro == 0 || p['categoria_id'] == filtro).toList();
+    return Column(children: [
+      ListTile(
+        title: const Text('MENÚ HOY',
+          style: TextStyle(color: dorado, fontSize: 25,
+            fontWeight: FontWeight.bold)),
+        subtitle: const Text('¡Arma el menú de hoy jefecillo!'),
+        trailing: IconButton(onPressed: cargar,
+          icon: const Icon(Icons.refresh)),
+      ),
+      if (cargando)
+        const Expanded(child: Center(child: CircularProgressIndicator()))
+      else if (error.isNotEmpty)
+        Expanded(child: Center(child: Text(error)))
+      else
+        Expanded(child: ListView(padding: const EdgeInsets.all(12), children: [
+          const Text('Platos', style: TextStyle(
+            color: dorado, fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          SingleChildScrollView(scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              for (final cat in categorias.entries)
+                Padding(padding: const EdgeInsets.only(right: 7),
+                  child: ChoiceChip(
+                    label: Text(cat.value),
+                    selected: filtro == cat.key,
+                    onSelected: (_) => setState(() { filtro = cat.key; }),
+                  )),
+            ])),
+          const SizedBox(height: 12),
+          for (final p in visibles) plato(p),
+          const SizedBox(height: 24),
+          Row(children: [
+            const Expanded(child: Text('MENÚ DEL DÍA',
+              style: TextStyle(color: dorado, fontSize: 21,
+                fontWeight: FontWeight.bold))),
+            if (seleccion.isNotEmpty)
+              TextButton(onPressed: limpiar,
+                child: const Text('Limpiar todo',
+                  style: TextStyle(color: Colors.redAccent))),
+          ]),
+          if (publicado) const Text(
+            'Menú activo — visible para clientes y meseros',
+            style: TextStyle(color: Colors.greenAccent)),
+          if (seleccion.isEmpty)
+            const Padding(padding: EdgeInsets.all(20),
+              child: Text('Aún no hay platos\nToca un plato para agregarlo',
+                textAlign: TextAlign.center)),
+          grupo('Platos', null),
+          grupo('Bebidas', 4),
+          const SizedBox(height: 12),
+          Text('Total platos en menú: ${seleccion.length}',
+            style: const TextStyle(color: dorado)),
+          const SizedBox(height: 12),
+          SizedBox(width: double.infinity, child: FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: naranja),
+            onPressed: publicando ? null : publicar,
+            child: Text(publicando ? 'Publicando...' : '↑ Subir Menú del Día'),
+          )),
+        ])),
+    ]);
+  }
 }
