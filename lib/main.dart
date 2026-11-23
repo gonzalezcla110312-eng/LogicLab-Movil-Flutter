@@ -122,6 +122,52 @@ class _AccesoState extends State<Acceso> {
                   style: const TextStyle(color: Colors.white,
                     fontFamily: 'serif', fontWeight: FontWeight.bold,
                     fontSize: 16))))),
+          const SizedBox(height: 18),
+          const Divider(color: Color(0xFFCEAA95)),
+          const SizedBox(height: 15),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(17),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF5EC),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFEFC4B2)),
+            ),
+            child: Column(children: [
+              const Text('ACCESO CLIENTES',
+                style: TextStyle(color: Color(0xFF923326),
+                  fontWeight: FontWeight.bold, letterSpacing: 1)),
+              const SizedBox(height: 9),
+              const Text('Menú Digital - Cliente',
+                style: TextStyle(color: Color(0xFF251A18),
+                  fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 9),
+              const Text('Explora el menú y registra tus PQRS de forma rápida.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Color(0xFF674A40))),
+              const SizedBox(height: 13),
+              SizedBox(width: double.infinity, child: FilledButton(
+                onPressed: () {
+                  final api = Api(servidor.text.trim());
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => Scaffold(
+                      appBar: AppBar(title: const Text('Menú Digital - Cliente')),
+                      body: VistaApi(api: api, titulo: 'Menú del Día',
+                        ruta: '/api/menu-dia/hoy'))));
+                },
+                child: const Text('VER MENÚ'),
+              )),
+              const SizedBox(height: 8),
+              SizedBox(width: double.infinity, child: OutlinedButton(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Formulario PQRS del cliente pendiente de migrar.')));
+                },
+                child: const Text('REGISTRAR PQRS',
+                  style: TextStyle(color: Color(0xFF923326))),
+              )),
+            ]),
+          ),
           const SizedBox(height: 15),
           TextButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text(
