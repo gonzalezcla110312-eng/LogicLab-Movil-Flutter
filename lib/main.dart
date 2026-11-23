@@ -1,3 +1,4 @@
+import 'registro_pqrs.dart';
 import 'pedidos_cocina.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -161,8 +162,9 @@ class _AccesoState extends State<Acceso> {
               const SizedBox(height: 8),
               SizedBox(width: double.infinity, child: OutlinedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Formulario PQRS del cliente pendiente de migrar.')));
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => RegistroPqrs(
+                      api: Api(servidor.text.trim()))));
                 },
                 child: const Text('REGISTRAR PQRS',
                   style: TextStyle(color: Color(0xFF923326))),
