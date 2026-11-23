@@ -66,10 +66,14 @@ class _PedidosCocinaState extends State<PedidosCocina> {
     final id = int.tryParse(p['id'].toString()) ?? 0;
     final estado = (p['estado'] ?? p['estadoPedido'] ?? '').toString().toUpperCase();
     final detalles = p['detalles'] is List ? p['detalles'] as List : <dynamic>[];
-    final mesa = p['mesa_id'] ?? p['mesa'] ?? '?';
+    final mesa = p['mesa_numero'] ?? p['mesa_id'] ?? p['mesa'] ?? '?';
     final estados = cocina
-        ? const ['COCINANDO', 'PARA_ENTREGA', 'ENTREGADO']
-        : const ['COCINANDO', 'PARA_ENTREGA', 'ENTREGADO', 'PAGADO', 'CERRADO', 'CANCELADO'];
+        ? (estado == 'PENDIENTE' ? const ['COCINANDO']
+          : estado == 'COCINANDO' ? const ['PARA_ENTREGA'] : <String>[])
+        : (estado == 'PARA_ENTREGA' ? const ['ENTREGADO']
+          : estado == 'ENTREGADO' ? const ['PAGADO']
+          : estado == 'PAGADO' ? const ['CERRADO']
+          : <String>[]);
     return Card(
       color: const Color(0xFF341E1B),
       margin: const EdgeInsets.symmetric(vertical: 7),
@@ -86,7 +90,7 @@ class _PedidosCocinaState extends State<PedidosCocina> {
             if (d is Map)
               Padding(padding: const EdgeInsets.symmetric(vertical: 3),
                 child: Text(
-                  '${d['cantidad'] ?? 1} × ${d['platillo'] is Map ? d['platillo']['nombre'] : d['nombre'] ?? 'Platillo #${d['platillo_id']}'}'
+                  '${d['cantidad'] ?? 1} × ${d['platillo'] is Map ? d['platillo']['nombre'] : d['platillo_nombre'] ?? d['nombre'] ?? 'Platillo #${d['platillo_id']}'}'
                   '${d['notas'] == null || d['notas'].toString().isEmpty ? '' : ' · ${d['notas']}'}')),
           const SizedBox(height: 8),
           Wrap(spacing: 7, runSpacing: 7, children: [
