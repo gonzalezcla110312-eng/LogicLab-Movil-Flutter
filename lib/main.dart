@@ -62,24 +62,94 @@ class _AccesoState extends State<Acceso> {
   void dispose() { correo.dispose(); clave.dispose(); servidor.dispose(); super.dispose(); }
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFF170F0E),
-    body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(25),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text('MANGATA', style: TextStyle(fontSize: 38,
-          fontWeight: FontWeight.bold, color: dorado)),
-        const SizedBox(height: 32),
-        TextField(controller: correo, decoration: const InputDecoration(
-          labelText: 'Correo electrónico')),
-        TextField(controller: clave, obscureText: true,
-          decoration: const InputDecoration(labelText: 'Contraseña')),
-        ExpansionTile(title: const Text('Servidor Node.js'),
-          children: [TextField(controller: servidor,
-            decoration: const InputDecoration(labelText: 'URL del backend'))]),
-        if (error.isNotEmpty) Text(error, style: const TextStyle(color: Colors.red)),
-        FilledButton(onPressed: cargando ? null : entrar,
-          child: Text(cargando ? 'Conectando...' : 'INICIAR SESIÓN')),
-      ]))),
+    backgroundColor: const Color(0xFF291512),
+    body: SafeArea(child: Center(child: SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+      child: Container(
+        width: double.infinity,
+        constraints: const BoxConstraints(maxWidth: 700),
+        padding: const EdgeInsets.fromLTRB(30, 40, 30, 30),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8ECE2),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: const Color(0xFFEFC5B5)),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 13),
+            decoration: BoxDecoration(color: const Color(0xFF923326),
+              borderRadius: BorderRadius.circular(30)),
+            child: const Text('ZONA DE PERSONAL',
+              style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold,
+                color: Colors.white, fontSize: 14))),
+          const SizedBox(height: 17),
+          const Text('Inicio de Sesión',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF251A18),
+              fontWeight: FontWeight.w800, fontSize: 35)),
+          const SizedBox(height: 12),
+          Container(width: 80, height: 4,
+            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4),
+              gradient: const LinearGradient(colors: [
+                Color(0xFFC52320), Color(0xFFFF7628)]))),
+          const SizedBox(height: 16),
+          const Text('Ingresa para gestionar pedidos en tiempo real.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF674A40),
+              fontFamily: 'serif', fontSize: 17)),
+          const SizedBox(height: 25),
+          TextField(controller: correo, keyboardType: TextInputType.emailAddress,
+            style: const TextStyle(color: Color(0xFF251A18)),
+            decoration: campo('Nombre de usuario')),
+          const SizedBox(height: 16),
+          TextField(controller: clave, obscureText: true,
+            style: const TextStyle(color: Color(0xFF251A18)),
+            decoration: campo('Contraseña')),
+          if (error.isNotEmpty) Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Text(error, style: const TextStyle(color: Color(0xFFB82220)))),
+          const SizedBox(height: 17),
+          SizedBox(width: double.infinity, height: 64,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [
+                  Color(0xFFBB211E), Color(0xFFFF7927)]),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: const [BoxShadow(color: Color(0x44BB3021),
+                  blurRadius: 19, offset: Offset(0, 12))]),
+              child: TextButton(onPressed: cargando ? null : entrar,
+                child: Text(cargando ? 'CONECTANDO...' : 'SIGUIENTE',
+                  style: const TextStyle(color: Colors.white,
+                    fontFamily: 'serif', fontWeight: FontWeight.bold,
+                    fontSize: 16))))),
+          const SizedBox(height: 15),
+          TextButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text(
+                'Recuperación de contraseña pendiente de implementar en el backend.'))),
+            child: const Text('Recuperación contraseña',
+              style: TextStyle(color: Color(0xFF923326),
+                fontFamily: 'serif', fontWeight: FontWeight.bold,
+                fontSize: 16))),
+        ]),
+      ),
+    ))),
   );
+
+  InputDecoration campo(String titulo) => InputDecoration(
+    hintText: titulo,
+    hintStyle: const TextStyle(color: Color(0xFF9B8F8B),
+      fontFamily: 'serif', fontSize: 17),
+    filled: true,
+    fillColor: const Color(0xFFFFFBFA),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 21),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: const BorderSide(color: Color(0xFFEFC4B2))),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(15),
+      borderSide: const BorderSide(color: Color(0xFFDD5434), width: 1.5)),
+  );
+
 }
 
 class Panel extends StatefulWidget {
