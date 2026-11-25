@@ -1,30 +1,45 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:flutter_application_1/main.dart';
+import 'package:logiclab/login_home_view.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('renders both access panels and their actions', (tester) async {
+    final usuarioController = TextEditingController();
+    final contrasenaController = TextEditingController();
+    var menuOpened = false;
+    var pqrsOpened = false;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoginHomeView(
+          usuarioController: usuarioController,
+          contrasenaController: contrasenaController,
+          cargando: false,
+          error: '',
+          onLogin: () async {},
+          onMenu: () => menuOpened = true,
+          onPqrs: () => pqrsOpened = true,
+          onRecovery: () {},
+        ),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    expect(find.text('Inicio de Sesión'), findsOneWidget);
+    expect(find.text('Menú Digital - Cliente'), findsOneWidget);
+    expect(find.text('VER MENÚ'), findsOneWidget);
+    expect(find.text('REGISTRAR PQRS'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('VER MENÚ'));
+    await tester.tap(find.text('VER MENÚ'));
     await tester.pump();
+    expect(menuOpened, isTrue);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.ensureVisible(find.text('REGISTRAR PQRS'));
+    await tester.tap(find.text('REGISTRAR PQRS'));
+    await tester.pump();
+    expect(pqrsOpened, isTrue);
+
+    usuarioController.dispose();
+    contrasenaController.dispose();
   });
 }

@@ -2,7 +2,7 @@
 
 Aplicación móvil del sistema **LogicLab**, desarrollada con Flutter para permitir el acceso desde dispositivos Android al sistema de gestión de un restaurante.
 
-La aplicación móvil utiliza Flutter como contenedor y WebView para conectar con el frontend web de LogicLab, manteniendo la misma funcionalidad y comunicación con el backend y la base de datos.
+La aplicación móvil está construida con Flutter y Dart. Sus pantallas de acceso, menú, cocina, pedidos y PQRS se implementan de forma nativa y consumen la API REST del backend. El frontend React para navegador permanece separado y sin cambios.
 
 ---
 
@@ -35,16 +35,8 @@ El sistema está compuesto por tres partes principales:
 ```text
 ┌─────────────────────────────┐
 │      Aplicación Flutter     │
-│          Android            │
+│   Interfaz nativa en Dart   │
 └──────────────┬──────────────┘
-               │
-               │ WebView
-               ▼
-┌─────────────────────────────┐
-│       Frontend React        │
-│           Vite              │
-└──────────────┬──────────────┘
-               │
                │ HTTP / REST API
                ▼
 ┌─────────────────────────────┐
@@ -60,7 +52,7 @@ El sistema está compuesto por tres partes principales:
 └─────────────────────────────┘
 ```
 
-La aplicación Flutter funciona como aplicación móvil y utiliza WebView para acceder al frontend de LogicLab.
+El frontend React para navegador también consume la API del backend, pero la aplicación Android no depende de un WebView para mostrar sus pantallas.
 
 ---
 
@@ -70,10 +62,10 @@ La aplicación móvil está desarrollada utilizando:
 
 - Flutter
 - Dart
-- WebView
+- Dio para las solicitudes HTTP a la API REST
 - Android SDK
 
-La aplicación se comunica con el frontend de LogicLab mediante la dirección de red configurada para el servidor de desarrollo.
+La aplicación se comunica directamente con el backend mediante la URL configurada con `API_URL`.
 
 ---
 
@@ -83,7 +75,7 @@ La aplicación se comunica con el frontend de LogicLab mediante la dirección de
 |---|---|
 | Flutter | Aplicación móvil |
 | Dart | Lenguaje de programación |
-| WebView | Integración del frontend web |
+| Dio | Consumo de la API REST desde Flutter |
 | React | Frontend |
 | Vite | Servidor de desarrollo del frontend |
 | Node.js | Backend |

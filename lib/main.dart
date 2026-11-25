@@ -1,5 +1,6 @@
 import 'registro_pqrs.dart';
 import 'pedidos_cocina.dart';
+import 'login_home_view.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -27,7 +28,7 @@ class Api {
     } on DioException catch (e) {
       throw Exception(e.response?.data is Map
         ? (e.response?.data['error'] ?? 'Solicitud rechazada')
-        : 'No hay conexión con ' + url);
+        : 'No hay conexión con $url');
     }
   }
 }
@@ -63,141 +64,36 @@ class _AccesoState extends State<Acceso> {
   @override
   void dispose() { correo.dispose(); clave.dispose(); servidor.dispose(); super.dispose(); }
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFF291512),
-    body: SafeArea(child: Center(child: SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
-      child: Container(
-        width: double.infinity,
-        constraints: const BoxConstraints(maxWidth: 700),
-        padding: const EdgeInsets.fromLTRB(30, 40, 30, 30),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8ECE2),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: const Color(0xFFEFC5B5)),
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 17, vertical: 13),
-            decoration: BoxDecoration(color: const Color(0xFF923326),
-              borderRadius: BorderRadius.circular(30)),
-            child: const Text('ZONA DE PERSONAL',
-              style: TextStyle(fontFamily: 'serif', fontWeight: FontWeight.bold,
-                color: Colors.white, fontSize: 14))),
-          const SizedBox(height: 17),
-          const Text('Inicio de Sesión',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFF251A18),
-              fontWeight: FontWeight.w800, fontSize: 35)),
-          const SizedBox(height: 12),
-          Container(width: 80, height: 4,
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(4),
-              gradient: const LinearGradient(colors: [
-                Color(0xFFC52320), Color(0xFFFF7628)]))),
-          const SizedBox(height: 16),
-          const Text('Ingresa para gestionar pedidos en tiempo real.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Color(0xFF674A40),
-              fontFamily: 'serif', fontSize: 17)),
-          const SizedBox(height: 25),
-          TextField(controller: correo, keyboardType: TextInputType.emailAddress,
-            style: const TextStyle(color: Color(0xFF251A18)),
-            decoration: campo('Nombre de usuario')),
-          const SizedBox(height: 16),
-          TextField(controller: clave, obscureText: true,
-            style: const TextStyle(color: Color(0xFF251A18)),
-            decoration: campo('Contraseña')),
-          if (error.isNotEmpty) Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Text(error, style: const TextStyle(color: Color(0xFFB82220)))),
-          const SizedBox(height: 17),
-          SizedBox(width: double.infinity, height: 64,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [
-                  Color(0xFFBB211E), Color(0xFFFF7927)]),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: const [BoxShadow(color: Color(0x44BB3021),
-                  blurRadius: 19, offset: Offset(0, 12))]),
-              child: TextButton(onPressed: cargando ? null : entrar,
-                child: Text(cargando ? 'CONECTANDO...' : 'SIGUIENTE',
-                  style: const TextStyle(color: Colors.white,
-                    fontFamily: 'serif', fontWeight: FontWeight.bold,
-                    fontSize: 16))))),
-          const SizedBox(height: 18),
-          const Divider(color: Color(0xFFCEAA95)),
-          const SizedBox(height: 15),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(17),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF5EC),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFEFC4B2)),
-            ),
-            child: Column(children: [
-              const Text('ACCESO CLIENTES',
-                style: TextStyle(color: Color(0xFF923326),
-                  fontWeight: FontWeight.bold, letterSpacing: 1)),
-              const SizedBox(height: 9),
-              const Text('Menú Digital - Cliente',
-                style: TextStyle(color: Color(0xFF251A18),
-                  fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 9),
-              const Text('Explora el menú y registra tus PQRS de forma rápida.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Color(0xFF674A40))),
-              const SizedBox(height: 13),
-              SizedBox(width: double.infinity, child: FilledButton(
-                onPressed: () {
-                  final api = Api(servidor.text.trim());
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => Scaffold(
-                      appBar: AppBar(title: const Text('Menú Digital - Cliente')),
-                      body: VistaApi(api: api, titulo: 'Menú del Día',
-                        ruta: '/api/menu-dia/hoy'))));
-                },
-                child: const Text('VER MENÚ'),
-              )),
-              const SizedBox(height: 8),
-              SizedBox(width: double.infinity, child: OutlinedButton(
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => RegistroPqrs(
-                      api: Api(servidor.text.trim()))));
-                },
-                child: const Text('REGISTRAR PQRS',
-                  style: TextStyle(color: Color(0xFF923326))),
-              )),
-            ]),
-          ),
-          const SizedBox(height: 15),
-          TextButton(onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text(
-                'Recuperación de contraseña pendiente de implementar en el backend.'))),
-            child: const Text('Recuperación contraseña',
-              style: TextStyle(color: Color(0xFF923326),
-                fontFamily: 'serif', fontWeight: FontWeight.bold,
-                fontSize: 16))),
-        ]),
-      ),
-    ))),
+  Widget build(BuildContext context) => LoginHomeView(
+    usuarioController: correo,
+    contrasenaController: clave,
+    cargando: cargando,
+    error: error,
+    onLogin: entrar,
+    onMenu: abrirMenu,
+    onPqrs: abrirPqrs,
+    onRecovery: mostrarRecuperacionPendiente,
   );
 
-  InputDecoration campo(String titulo) => InputDecoration(
-    hintText: titulo,
-    hintStyle: const TextStyle(color: Color(0xFF9B8F8B),
-      fontFamily: 'serif', fontSize: 17),
-    filled: true,
-    fillColor: const Color(0xFFFFFBFA),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 21),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15),
-      borderSide: const BorderSide(color: Color(0xFFEFC4B2))),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(15),
-      borderSide: const BorderSide(color: Color(0xFFDD5434), width: 1.5)),
-  );
+  void abrirMenu() {
+    final api = Api(servidor.text.trim());
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('Menú Digital - Cliente')),
+        body: VistaApi(api: api, titulo: 'Menú del Día',
+          ruta: '/api/menu-dia/hoy'))));
+  }
+
+  void abrirPqrs() {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => RegistroPqrs(api: Api(servidor.text.trim()))));
+  }
+
+  void mostrarRecuperacionPendiente() {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      content: Text(
+        'Recuperación de contraseña pendiente de implementar en el backend.')));
+  }
 
 }
 
@@ -229,7 +125,7 @@ class _PanelState extends State<Panel> {
       drawer: Drawer(backgroundColor: vino, child: SafeArea(
         child: Column(children: [
           ListTile(title: const Text('MANGATA'),
-            subtitle: Text('Bienvenido, ' + widget.usuario['nombre'].toString())),
+            subtitle: Text('Bienvenido, ${widget.usuario['nombre']}')),
           Expanded(child: ListView(children: secciones.map((s) =>
             ListTile(title: Text(s), selected: pagina == s,
               onTap: () { setState(() => pagina = s); Navigator.pop(context); })
@@ -335,8 +231,8 @@ class _MenuDiaState extends State<MenuDia> {
 
   String moneda(dynamic valor) {
     final cantidad = (double.tryParse(valor.toString()) ?? 0).round().toString();
-    return '\$' + cantidad.replaceAllMapped(
-      RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.');
+    return '\$${cantidad.replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}';
   }
 
   @override
